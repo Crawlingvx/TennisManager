@@ -9,6 +9,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 import java.util.ResourceBundle;
@@ -17,6 +18,7 @@ import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.scene.Node;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
@@ -43,7 +45,6 @@ public class FXMLDocumentController implements Initializable
     private ColaJugadores queue; //Representa la cola de jugadores a ser vaciada en el torneo
     private ListaAnos anos; //Representa la lista de anos a ser guardada/recuperada que contiene toda la informacion
     private NodoAnos anoImplementado; //Año en el que se esta consultando/modificando la informacion
-    private String equipoElegido; //representa el equipo a implementar en las busquedas para Historial de Equipos y Jugadores
     
     //Panel de "Crear Torneo"
     @FXML
@@ -70,10 +71,6 @@ public class FXMLDocumentController implements Initializable
     @FXML
     private Button clickEncuentros;
     @FXML
-    private GridPane grid3;
-    @FXML
-    private GridPane grid4;
-    @FXML
     private Button eliminarCat3;
     @FXML
     private Button eliminarCat4;
@@ -84,7 +81,7 @@ public class FXMLDocumentController implements Initializable
     @FXML
     private Button eliminarEquipo;
     @FXML
-    private Button salvarCambios;
+    private Button salvarCambiosEquipo;
     @FXML
     private TextField textPuntos;
     @FXML
@@ -100,13 +97,35 @@ public class FXMLDocumentController implements Initializable
     @FXML
     private Pane paneCrear;
     @FXML
-    private Button botonJugador;
-    @FXML
     private ComboBox<NodoEquipos> comboEquipo;
     @FXML
-    private GridPane grid5;
+    private GridPane grid3M;
     @FXML
-    private GridPane grid6;
+    private GridPane grid3F;
+    @FXML
+    private GridPane grid4M;
+    @FXML
+    private GridPane grid4F;
+    @FXML
+    private GridPane grid5M;
+    @FXML
+    private GridPane grid5F;
+    @FXML
+    private GridPane grid6M;
+    @FXML
+    private GridPane grid6F;
+    @FXML
+    private ComboBox<NodoJugadores> comboJugador;
+    @FXML
+    private TextField textJuegosGanados;
+    @FXML
+    private TextField textJuegosPerdidos;
+    @FXML
+    private TextField textNumeroJuegos;
+    @FXML
+    private TextField textPuntosAcumulados;
+    @FXML
+    private Button salvarCambiosJugador;
     
     /**
     * Metodo initialize
@@ -179,7 +198,7 @@ public class FXMLDocumentController implements Initializable
         
         anoImplementado = anos.buscarAnos(nodAno); //consigue el equivalente de nodAno y lo guarda en el atributo anoImplementado
         
-        recuperarInformacionEquipo();
+        recuperarInformacionAño();
     }
     
     /**
@@ -236,7 +255,7 @@ public class FXMLDocumentController implements Initializable
             popupEntrada(true); //muestra un popup de exito al introducir la informacion correctamente
             
             //crea un jugador con la informacion introducida por el usuario
-            NodoJugadores jugador = new NodoJugadores(textNombre.getText(), cedula, textSexo.getText(), edad, textEquipo.getText(), categoria, 0, null);
+            NodoJugadores jugador = new NodoJugadores(textNombre.getText(), cedula, textSexo.getText(), edad, textEquipo.getText(), categoria, 0, 0, 0, null);
             queue.encolar(jugador); //inserta al jugador en la cola
         }
         
@@ -327,14 +346,90 @@ public class FXMLDocumentController implements Initializable
     * 
     * @param event Significa que este metodo es llamado con el click de un boton (Elegir Equipo)
     */
-    private void recuperarInformacionEquipo()
+    private void recuperarInformacionAño()
     {
         ListaEquipos listaEquipo = new ListaEquipos(); //lista donde se buscara el equipo elegido
         
         listaEquipo = anoImplementado.getEquipos(); //llena lista de equipos, con los equipos que jugaron el ano elegido (e.g: 2013)
         
         llenarComboBoxEquipo(listaEquipo); //llena el ComboBox de los equipos que participaron este año
+        llenarComboBoxJugadores(listaEquipo);
+    }
+    
+    public void llenarComboBoxJugadores(ListaEquipos listaEquipo)
+    {
+        ObservableList<NodoJugadores> ol = FXCollections.observableArrayList();
+        NodoEquipos equipos = listaEquipo.getCabeza();
         
+        while(equipos != null)
+        {
+            NodoCategorias categorias = equipos.getCategorias().getCabeza();
+            ABBJugadores arbol = categorias.getJugadores();
+            
+            while(categorias != null)
+            {
+                NodoJugadores aux = arbol.getRaiz();
+                ArrayList<NodoJugadores> array = arbol.retornarEnOrden(aux);
+            
+                for(int i = 0 ; i < array.size() ; i++)
+                    ol.add(array.get(i));
+            
+                categorias = categorias.getProximo();
+            }
+            
+            equipos = equipos.getProximo();
+        }
+        
+        comboJugador.setItems(ol);
+        
+        // Define rendering of the list of values in ComboBox drop down. 
+        comboJugador.setCellFactory((comboBox) -> 
+        {
+            return new ListCell<NodoJugadores>() 
+            {
+                @Override
+                protected void updateItem(NodoJugadores item, boolean empty) 
+                {
+                    super.updateItem(item, empty);
+
+                    if (item == null || empty) 
+                    {
+                        setText(null);
+                    } 
+                    else 
+                    {
+                        setText(item.getNombre());
+                    }
+                }
+            };
+        });
+
+        // Define rendering of selected value shown in ComboBox.
+        comboJugador.setConverter(new StringConverter<NodoJugadores>() 
+        {
+            @Override
+            public String toString(NodoJugadores nodJugadores) 
+            {
+                    return nodJugadores.getNombre();
+            }
+
+            @Override
+            public NodoJugadores fromString(String personString) 
+            {
+                return null; // No conversion fromString needed.
+            }
+        });
+    }
+    
+    @FXML
+    private void eleccionComboJugador(ActionEvent event)
+    {
+        NodoJugadores jugadorElegido = comboJugador.getSelectionModel().getSelectedItem();
+        
+        textJuegosGanados.setText(Integer.toString(jugadorElegido.getJuegosGanados()));
+        textJuegosPerdidos.setText(Integer.toString(jugadorElegido.getJuegosPerdidos()));
+        textNumeroJuegos.setText(Integer.toString(jugadorElegido.getJuegosGanados() + jugadorElegido.getJuegosPerdidos()));
+        textPuntosAcumulados.setText(Integer.toString(jugadorElegido.getPuntos()));
     }
     
     /**
@@ -345,16 +440,18 @@ public class FXMLDocumentController implements Initializable
     */
     private void llenarComboBoxEquipo(ListaEquipos listaEquipo)
     {
-        NodoEquipos aux;
         ObservableList<NodoEquipos> ol = FXCollections.observableArrayList();
-        aux = listaEquipo.getCabeza();
+        NodoEquipos aux = listaEquipo.getCabeza();
         
         while(aux != null)
         {
             ol.add(aux);
             aux = aux.getProximo();
         }
+        
         comboEquipo.setItems(ol);
+        
+        
         
         // Define rendering of the list of values in ComboBox drop down. 
         comboEquipo.setCellFactory((comboBox) -> 
@@ -398,28 +495,87 @@ public class FXMLDocumentController implements Initializable
     @FXML
     private void eleccionComboEquipos(ActionEvent event)
     {
+        clearGrid();
         NodoEquipos equipoElegido = comboEquipo.getSelectionModel().getSelectedItem();
         NodoCategorias categoria = equipoElegido.getCategorias().getCabeza();
         
         ABBJugadores arbol = categoria.getJugadores();
         
+        textRanking.setText(Integer.toString(equipoElegido.getRanking()));
+        textPuntos.setText(Integer.toString(equipoElegido.getPuntos()));
+        
+        
         while(categoria != null)
         {
             NodoJugadores jugador = categoria.getJugadores().getRaiz();
             
-            if(jugador.getCategoria() == 3)
-                arbol.retornarEnOrden(jugador, grid3);
-            else if(jugador.getCategoria() == 4)
-                arbol.retornarEnOrden(jugador, grid4);
-            else if(jugador.getCategoria() == 5)
-                arbol.retornarEnOrden(jugador, grid5);
-            else if(jugador.getCategoria() == 6)
-                arbol.retornarEnOrden(jugador, grid6);
+            ArrayList<NodoJugadores> array = arbol.retornarEnOrden(jugador);
+            
+            if( (jugador.getCategoria() == 3) && (jugador.getSexo().equalsIgnoreCase("m")))
+                llenarGrid(array, grid3M);
+            else if( (jugador.getCategoria() == 3) && (jugador.getSexo().equalsIgnoreCase("f")))
+                llenarGrid(array, grid3F);
+            else if( (jugador.getCategoria() == 4) && (jugador.getSexo().equalsIgnoreCase("m")))
+                llenarGrid(array, grid4M);
+            else if( (jugador.getCategoria() == 4) && (jugador.getSexo().equalsIgnoreCase("f")))
+                llenarGrid(array, grid4F);
+            else if( (jugador.getCategoria() == 5) && (jugador.getSexo().equalsIgnoreCase("m")))
+                llenarGrid(array, grid5M);
+            else if( (jugador.getCategoria() == 5) && (jugador.getSexo().equalsIgnoreCase("f")))
+                llenarGrid(array, grid5F);
+            else if( (jugador.getCategoria() == 6) && (jugador.getSexo().equalsIgnoreCase("m")))
+                llenarGrid(array, grid6M);
+            else if( (jugador.getCategoria() == 6) && (jugador.getSexo().equalsIgnoreCase("f")))
+                llenarGrid(array, grid6F);
             
             categoria = categoria.getProximo();
         }
     }
-
+    
+    public void clearGrid()
+    {
+        grid3M.getChildren().clear();
+        grid3F.getChildren().clear();
+        grid4M.getChildren().clear();
+        grid4F.getChildren().clear();
+        grid5M.getChildren().clear();
+        grid5F.getChildren().clear();
+        grid6M.getChildren().clear();
+        grid6F.getChildren().clear();
+        
+    }
+    
+     public void llenarGrid(ArrayList<NodoJugadores> array, GridPane grid)
+    {
+        for(int i = 0 ; i < array.size() ; i++)
+        {
+            TextField text = new TextField(array.get(i).getNombre());
+            text.setId(array.get(i).getNombre());
+            grid.add(text, i, 0);
+        }   
+    }
+    
+    
+    public void sobreescribirJugadores(GridPane grid)
+    {
+        NodoEquipos equipoElegido = comboEquipo.getSelectionModel().getSelectedItem();
+        
+        for(int i = 0 ; i < grid.getChildren().size() ; i++)
+        {
+            Node nodo = grid.getChildren().get(i);
+            
+            if(nodo instanceof TextField)
+            {
+                TextField text = (TextField) nodo;
+            
+                NodoCategorias nodCat = equipoElegido.getCategorias().getCabeza();
+                NodoJugadores jugador = nodCat.getJugadores().getRaiz();
+                
+                nodCat.getJugadores().sobreescribirJugador(jugador, text);
+            }
+        }
+    }
+    
     /**
     * Metodo salvarCambios
     * Metodo que Salva los cambios realizados en el historial de equipos.
@@ -427,8 +583,50 @@ public class FXMLDocumentController implements Initializable
     * @param event Significa que este metodo es llamado con el click de un boton (Salvar Cambios)
     */
     @FXML
-    private void salvarCambios(ActionEvent event) //NO SIRVE
+    private void salvarCambiosEquipo(ActionEvent event) throws IOException
     {
+        NodoEquipos equipoElegido = comboEquipo.getSelectionModel().getSelectedItem();
+        NodoCategorias categoria = equipoElegido.getCategorias().getCabeza();
         
+        equipoElegido.setRanking(Integer.parseInt(textRanking.getText()));
+        equipoElegido.setPuntos(Integer.parseInt(textPuntos.getText()));
+        
+        while(categoria != null)
+        {
+            NodoJugadores jugador = categoria.getJugadores().getRaiz();
+            
+            if( (jugador.getCategoria() == 3) && (jugador.getSexo().equalsIgnoreCase("m")))
+                sobreescribirJugadores(grid3M);
+            else if( (jugador.getCategoria() == 3) && (jugador.getSexo().equalsIgnoreCase("f")))
+                sobreescribirJugadores(grid3F);
+            else if( (jugador.getCategoria() == 4) && (jugador.getSexo().equalsIgnoreCase("m")))
+                sobreescribirJugadores(grid4M);
+            else if( (jugador.getCategoria() == 4) && (jugador.getSexo().equalsIgnoreCase("f")))
+                sobreescribirJugadores(grid4F);
+            else if( (jugador.getCategoria() == 5) && (jugador.getSexo().equalsIgnoreCase("m")))
+                sobreescribirJugadores(grid5M);
+            else if( (jugador.getCategoria() == 5) && (jugador.getSexo().equalsIgnoreCase("f")))
+                sobreescribirJugadores(grid5F);
+            else if( (jugador.getCategoria() == 6) && (jugador.getSexo().equalsIgnoreCase("m")))
+                sobreescribirJugadores(grid6M);
+            else if( (jugador.getCategoria() == 6) && (jugador.getSexo().equalsIgnoreCase("f")))
+                sobreescribirJugadores(grid6F);
+            
+            categoria = categoria.getProximo();
+        }
+        
+        anos.crearArchivo(anos);
+    }
+
+    @FXML
+    private void SalvarCambiosJugador(ActionEvent event) throws IOException
+    {
+        NodoJugadores jugadorElegido = comboJugador.getSelectionModel().getSelectedItem();
+        
+        jugadorElegido.setJuegosGanados(Integer.parseInt(textJuegosGanados.getText()));
+        jugadorElegido.setJuegosPerdidos(Integer.parseInt(textJuegosPerdidos.getText()));
+        jugadorElegido.setPuntos(Integer.parseInt(textPuntosAcumulados.getText()));
+        
+        anos.crearArchivo(anos);
     }
 }

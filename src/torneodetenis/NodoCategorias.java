@@ -68,7 +68,7 @@ public class NodoCategorias implements Serializable
     
     public void insertarABB(NodoJugadores jugador) throws Exception
     {
-        NodoJugadores nodJugador = new NodoJugadores(jugador.getNombre(), jugador.getCedula(), jugador.getSexo(), jugador.getEdad(), jugador.getEquipo(), jugador.getCategoria(), 0, null, null);
+        NodoJugadores nodJugador = new NodoJugadores(jugador.getNombre(), jugador.getCedula(), jugador.getSexo(), jugador.getEdad(), jugador.getEquipo(), jugador.getCategoria(), 0, 0, 0, null, null);
         NodoJugadores aux = jugadores.getRaiz();
         System.out.println("Jugador insertado: " + nodJugador.getNombre());
         jugadores.insertarJugador(aux, nodJugador);

@@ -5,20 +5,7 @@
  */
 package torneodetenis;
 
-import java.awt.event.KeyEvent;
-import java.io.Externalizable;
-import java.io.IOException;
-import java.io.ObjectInput;
-import java.io.ObjectOutput;
 import java.io.Serializable;
-import java.util.ArrayList;
-import javafx.beans.InvalidationListener;
-import javafx.beans.property.SimpleStringProperty;
-import javafx.beans.property.StringProperty;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
-import javafx.scene.control.TextField;
-import javafx.scene.layout.GridPane;
 
 /**
  *
@@ -33,11 +20,13 @@ public class NodoJugadores implements Serializable
     private String equipo;
     private int categoria;
     private int puntos;
+    private int juegosGanados;
+    private int juegosPerdidos;
     private NodoJugadores proximo;
     private NodoJugadores hijoIzquierdo;
     private NodoJugadores hijoDerecho;
 
-    public NodoJugadores(String nombre, int cedula, String sexo, int edad, String equipo, int categoria, int puntos, NodoJugadores proximo)
+    public NodoJugadores(String nombre, int cedula, String sexo, int edad, String equipo, int categoria, int puntos, int juegosGanados, int juegosPerdidos, NodoJugadores proximo)
     {
         this.nombre = nombre;
         this.cedula = cedula;
@@ -46,10 +35,12 @@ public class NodoJugadores implements Serializable
         this.equipo = equipo;
         this.categoria = categoria;
         this.puntos = puntos;
+        this.juegosGanados = juegosGanados;
+        this.juegosPerdidos = juegosPerdidos;
         this.proximo = proximo;
     }
 
-    public NodoJugadores(String nombre, int cedula, String sexo, int edad, String equipo, int categoria, int puntos, NodoJugadores hijoIzquierdo, NodoJugadores hijoDerecho) 
+    public NodoJugadores(String nombre, int cedula, String sexo, int edad, String equipo, int categoria, int puntos, int juegosGanados, int juegosPerdidos, NodoJugadores hijoIzquierdo, NodoJugadores hijoDerecho) 
     {
         this.nombre = nombre;
         this.cedula = cedula;
@@ -58,6 +49,8 @@ public class NodoJugadores implements Serializable
         this.equipo = equipo;
         this.categoria = categoria;
         this.puntos = puntos;
+        this.juegosGanados = juegosGanados;
+        this.juegosPerdidos = juegosPerdidos;
         this.hijoIzquierdo = hijoIzquierdo;
         this.hijoDerecho = hijoDerecho;
     }
@@ -132,6 +125,26 @@ public class NodoJugadores implements Serializable
         this.puntos = puntos;
     }
 
+    public int getJuegosGanados()
+    {
+        return juegosGanados;
+    }
+
+    public void setJuegosGanados(int juegosGanados)
+    {
+        this.juegosGanados = juegosGanados;
+    }
+
+    public int getJuegosPerdidos()
+    {
+        return juegosPerdidos;
+    }
+
+    public void setJuegosPerdidos(int juegosPerdidos)
+    {
+        this.juegosPerdidos = juegosPerdidos;
+    }
+
     public NodoJugadores getProximo() 
     {
         return proximo;
@@ -165,20 +178,6 @@ public class NodoJugadores implements Serializable
     public void mostrar()
     {
         System.out.println("Nombre: " + nombre + " - Cedula: " + cedula + "- Sexo: " + sexo + " - Edad: " + edad + "- Equipo: " + equipo + "- Puntos: " + puntos);
-    }
-    
-    public void llenarGrid(GridPane grid)
-    {
-        
-        if(sexo.equalsIgnoreCase("m"))
-        {
-            for(int i = 0 ; i < 8 ; i++)
-            {
-                TextField text = new TextField(nombre);
-                text.setId(nombre);
-                grid.add(text, i, 0);
-            }
-        }
     }
     
     static final long serialVersionUID = 8925409;

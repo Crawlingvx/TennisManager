@@ -7,6 +7,7 @@ package torneodetenis;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import javafx.scene.control.TextField;
 import javafx.scene.layout.GridPane;
 
 /**
@@ -49,25 +50,32 @@ public class ABBJugadores implements Serializable
     }
     
     // Recorrido En-Orden del ABB. Se va por la izquierda, se usa y luego por la derecha
-    public void retornarEnOrden(NodoJugadores aux, GridPane grid)
+    public ArrayList retornarEnOrden(NodoJugadores aux)
     {
+        ArrayList array = new ArrayList();
         
         if(aux != null)
         {
-            retornarEnOrden(aux.getHijoIzquierdo(), grid);
-            aux.llenarGrid(grid);
-            retornarEnOrden(aux.getHijoDerecho(), grid); 
+            retornarEnOrden(aux.getHijoIzquierdo());
+            array.add(aux);
+            retornarEnOrden(aux.getHijoDerecho()); 
         }
+        
+        return array;
     }
     
     // Recorrido Post-Orden del ABB. Se va por la izquierda, luego por la derecha y se usa
-    public void mostrarPostOrden(NodoJugadores aux)
+    public void sobreescribirJugador(NodoJugadores aux, TextField text)
     {
         if(aux != null)
         {
-            mostrarPostOrden(aux.getHijoIzquierdo());
-            mostrarPostOrden(aux.getHijoDerecho()); 
-            aux.mostrar();
+            if( (text.getId().equals(aux.getNombre())) && (!text.getText().equals(aux.getNombre())) )
+                aux.setNombre(text.getText());
+            else
+            {
+                sobreescribirJugador(aux.getHijoIzquierdo(), text);
+                sobreescribirJugador(aux.getHijoDerecho(), text);
+            }
         }
     }
     
