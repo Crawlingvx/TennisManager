@@ -65,9 +65,4 @@ public class NodoEncuentros implements Serializable
     {
         this.anterior = anterior;
     }
-    
-    public void mostrar()
-    {
-        System.out.println("Semana: " + semana + " - Tipo de Encuentro: " + tipo);
-    }
 }

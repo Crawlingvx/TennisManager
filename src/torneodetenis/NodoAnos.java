@@ -8,77 +8,89 @@ package torneodetenis;
 import java.io.Serializable;
 
 /**
- *
- * @author Administrador
+ * Clase NodoAnos
+ * Esta clase representa los nodos individuales de la lista de años.
+ * 
+ * @author Gian Franco Vitola, Elia Elias, Jose Guerrero
+ * @version 2.00, 16/11/2015
  */
 public class NodoAnos implements Serializable
 {
-    private int ano;
-    private NodoAnos proximo;
-    private ListaEquipos equipos;
+    private int _ano;
+    private NodoAnos _proximo;
+    private NodoAnos _anterior;
+    private ListaEquipos _equipos;
 
     public NodoAnos(int año) 
     {
-        this.ano = año;
-        this.proximo = null;
-        this.equipos = new ListaEquipos();
+        this._ano = año;
+        this._proximo = null;
+        this._equipos = new ListaEquipos();
     }
 
     public int getAno() 
     {
-        return ano;
+        return _ano;
     }
 
     public void setAno(int año) 
     {
-        this.ano = año;
+        this._ano = año;
     }
 
     public ListaEquipos getEquipos()
     {
-        return equipos;
+        return _equipos;
     }
 
     public NodoAnos getProximo() 
     {
-        return proximo;
+        return _proximo;
     }
 
     public void setProximo(NodoAnos proximo) 
     {
-        this.proximo = proximo;
+        this._proximo = proximo;
     }
-    
-    public void mostrar()
+
+    public NodoAnos getAnterior()
     {
-        System.out.println("Año: " + ano);
+        return _anterior;
+    }
+
+    public void setAnterior(NodoAnos anterior)
+    {
+        this._anterior = anterior;
     }
     
+    /**
+    * Metodo sortEquipo
+    * Metodo que inserta al jugador en su equipo especificado.
+    * 
+    * @param jugador el jugador desencolado al crear el torneo
+    */
     public void sortEquipo(NodoJugadores jugador) throws Exception
     {
-        NodoEquipos nodEquipo = new NodoEquipos(jugador.getEquipo(), 0, 0);
+        NodoEquipos nodEquipo = new NodoEquipos(jugador.getEquipo(), 0, 0); //NodoEquipos que contiene el equipo al que el jugador pertenece
         NodoEquipos aux = null;
         
-        if(equipos.estaVacia())
+        if(_equipos.estaVacia()) //condicion en caso de que no haya equipos registrados
         {
-            equipos.insertarPrimero(nodEquipo);
-            System.out.println("Equipo nuevo: " + nodEquipo.getUniversidad());
-            nodEquipo.sortCategoria(jugador);
+            _equipos.insertarPrimero(nodEquipo);
+            nodEquipo.sortCategoria(jugador); //inserta al jugador en su equipo
         }
         else
         {
-            aux = equipos.buscarEquipos(nodEquipo);
+            aux = _equipos.buscarEquipos(nodEquipo); //devuelve si el equipo del jugador esta registrado o no
             
-            if(aux != null)
+            if(aux != null) //condicion en caso de que el equipo del jugador este registrado
             {
-                System.out.println("Equipo registrado: " + aux.getUniversidad());
-                aux.sortCategoria(jugador);
+                aux.sortCategoria(jugador); //inserta al jugador en su equipo
             }
-            else
+            else //condicion en caso de que hayan equipos registrados, pero el equipo del jugador no sea uno de ellos
             {
-                equipos.insertarPrimero(nodEquipo);
-                System.out.println("Equipo nuevo: " + nodEquipo.getUniversidad());
-                nodEquipo.sortCategoria(jugador);
+                _equipos.insertarPrimero(nodEquipo); 
+                nodEquipo.sortCategoria(jugador); //inserta al jugador en su equipo
             }
         }
     }

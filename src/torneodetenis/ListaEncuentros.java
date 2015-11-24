@@ -60,24 +60,5 @@ public class ListaEncuentros implements Serializable
         }
     }
     
-    /**
-    * Metodo eliminarPrimero
-    * Metodo que elimina el primer nodo de la lista.
-    * 
-    */
-    public NodoEncuentros eliminarPrimero() 
-    {
-        NodoEncuentros nodoEliminado = null;
-        
-        if (!estaVacia()) 
-        {
-            nodoEliminado = cabeza;
-            cabeza = cabeza.getProximo();
-            nodoEliminado.setProximo(null);
-        } 
-        
-        return nodoEliminado;
-    }
-    
     static final long serialVersionUID = 8925409;
 }

@@ -6,28 +6,30 @@
 package torneodetenis;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.control.ComboBox;
 
 /**
- *
- * @author Administrador
+ * Clase ListaAnos
+ * Esta clase representa la lista de equipos que participaron en el torneo.
+ * 
+ * @author Gian Franco Vitola, Elia Elias, Jose Guerrero
+ * @version 3.01, 23/11/2015
  */
 public class ListaEquipos implements Serializable, Cloneable
 {
-    private NodoEquipos cabeza;
+    private NodoEquipos _cabeza;
+    private NodoEquipos _cola;
 
     public ListaEquipos() 
     {
-        this.cabeza = null;
+        this._cabeza = null;
     }
 
     public NodoEquipos getCabeza() 
     {
-        return cabeza;
+        return _cabeza;
     }
     
     /**
@@ -37,7 +39,7 @@ public class ListaEquipos implements Serializable, Cloneable
     */
     public boolean estaVacia() 
     {
-        return cabeza == null; 
+        return _cabeza == null; 
     }
 
     
@@ -50,12 +52,22 @@ public class ListaEquipos implements Serializable, Cloneable
     {
         if (estaVacia()) 
         {
-            cabeza = nuevo;
+            _cabeza = _cola = nuevo;
         } 
         else 
         {
-            nuevo.setProximo(cabeza);
-            cabeza = nuevo;
+            if(_cabeza == _cola){
+                nuevo.setProximo(_cabeza);
+                _cola = _cabeza;
+                _cabeza = nuevo;
+                _cola.setAnterior(_cabeza);
+            }
+            else
+            {
+                nuevo.setProximo(_cabeza);
+                _cabeza.setAnterior(nuevo);
+                _cabeza = nuevo;
+            }   
         }
     }
     
@@ -64,29 +76,42 @@ public class ListaEquipos implements Serializable, Cloneable
     * Metodo que elimina el primer nodo de la lista.
     * 
     */
-    public NodoEquipos eliminarPrimero() 
+    public void eliminarEquipo(NodoEquipos equipoEliminado) 
     {
-        NodoEquipos nodoEliminado = null;
+        NodoEquipos nodoAnterior = equipoEliminado.getAnterior();
+        NodoEquipos nodoProximo = equipoEliminado.getProximo();
         
-        if (!estaVacia()) 
+        if(!estaVacia())
         {
-            nodoEliminado = cabeza;
-            cabeza = cabeza.getProximo();
-            nodoEliminado.setProximo(null);
-        } 
-        
-        return nodoEliminado;
+            if(_cabeza == _cola)
+                _cabeza = _cola = null;
+            else if(equipoEliminado == _cabeza)
+            {
+                nodoProximo.setAnterior(nodoAnterior);
+                _cabeza = nodoProximo;
+            }
+            else if(equipoEliminado == _cola)
+            {
+                nodoAnterior.setProximo(nodoProximo);
+                _cola = nodoAnterior;
+            }
+            else
+            {
+                nodoAnterior.setProximo(nodoProximo);
+                nodoProximo.setAnterior(nodoAnterior);
+            }
+        }
     }
     
     /**
-    * Metodo buscarAnos
+    * Metodo buscarEquipos
     * Metodo que determina si el equipo del jugador que se esta introduciendo ya existe en el torneo
     * 
     * @param nodEquipo es el nodo con el equipo del jugador introducido por el usuario.
     */
     public NodoEquipos buscarEquipos(NodoEquipos nodEquipo)
     {
-        NodoEquipos aux = cabeza;
+        NodoEquipos aux = _cabeza;
         
         while(aux != null)
         {
@@ -101,38 +126,6 @@ public class ListaEquipos implements Serializable, Cloneable
         }
         
         return null; //retorna null si el equipo no esta registrado
-    }
-    
-    public ComboBox<NodoEquipos> retornarArrayUniversidad()
-    {
-        ObservableList<NodoEquipos> ol = FXCollections.observableArrayList();
-        ComboBox<NodoEquipos> choices = new ComboBox<NodoEquipos>();
-        NodoEquipos aux;
-        aux = cabeza;
-        
-        while(aux != null)
-        {
-            ol.add(aux);
-            aux = aux.getProximo();
-        }
-        
-        choices.setItems(ol);
-        
-        return choices;
-    }
-    
-    //Metodo que cuenta los nodos de la lista
-    public int contar()
-    {
-        NodoEquipos aux = cabeza;
-        int cont=0;
-        
-        while(aux != null)
-        {
-            aux = aux.getProximo();
-            cont++;
-        }
-        return cont;
     }
     
     static final long serialVersionUID = 8925409;

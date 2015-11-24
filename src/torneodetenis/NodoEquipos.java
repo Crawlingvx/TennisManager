@@ -8,101 +8,114 @@ package torneodetenis;
 import java.io.Serializable;
 
 /**
- *
- * @author Administrador
+ * Clase NodoEquipos
+ * Esta clase representa los nodos individuales de la lista de equipos.
+ * 
+ * @author Gian Franco Vitola, Elia Elias, Jose Guerrero
+ * @version 2.00, 16/11/2015
  */
 public class NodoEquipos implements Serializable
 {
-    private String universidad;
-    private int puntos;
-    private int ranking;
-    private NodoEquipos proximo;
-    private ListaCategorias categorias;
+    private String _universidad;
+    private int _puntos;
+    private int _ranking;
+    private NodoEquipos _proximo;
+    private NodoEquipos _anterior;
+    private ListaCategorias _categorias;
 
     public NodoEquipos(String universidad, int puntos, int ranking)
     {
-        this.universidad = universidad;
-        this.puntos = puntos;
-        this.ranking = ranking;
-        this.proximo = null;
-        this.categorias = new ListaCategorias(null);
+        this._universidad = universidad;
+        this._puntos = puntos;
+        this._ranking = ranking;
+        this._proximo = null;
+        this._anterior = null;
+        this._categorias = new ListaCategorias(null);
     }
 
     public String getUniversidad()
     {
-        return universidad;
+        return _universidad;
     }
 
     public void setUniversidad(String universidad) 
     {
-        this.universidad = universidad;
+        this._universidad = universidad;
     }
 
     public int getPuntos() 
     {
-        return puntos;
+        return _puntos;
     }
 
     public void setPuntos(int puntos) 
     {
-        this.puntos = puntos;
+        this._puntos = puntos;
     }
 
     public ListaCategorias getCategorias()
     {
-        return categorias;
+        return _categorias;
     }
 
     public int getRanking()
     {
-        return ranking;
+        return _ranking;
     }
 
     public void setRanking(int ranking)
     {
-        this.ranking = ranking;
+        this._ranking = ranking;
     }
 
     public NodoEquipos getProximo()
     {
-        return proximo;
+        return _proximo;
     }
 
     public void setProximo(NodoEquipos proximo)
     {
-        this.proximo = proximo;
+        this._proximo = proximo;
     }
-    
-    public void mostrar()
+
+    public NodoEquipos getAnterior()
     {
-        System.out.println("Universidad: " + universidad + "- Puntos: " + puntos);
+        return _anterior;
+    }
+
+    public void setAnterior(NodoEquipos anterior)
+    {
+        this._anterior = anterior;
     }
     
+    /**
+    * Metodo sortCategoria
+    * Metodo que inserta al jugador en su categoria especificada.
+    * 
+    * @param jugador el jugador desencolado al crear el torneo
+    */
     public void sortCategoria(NodoJugadores jugador) throws Exception
     {
-        NodoCategorias nodCategoria = new NodoCategorias(jugador.getCategoria(), jugador.getSexo());
+        NodoCategorias nodCategoria = new NodoCategorias(jugador.getCategoria(), jugador.getSexo()); //NodoCategorias que contiene la categoria a la que el jugador pertenece
         NodoCategorias aux = null;
         
-        if(categorias.estaVacia())
+        if(_categorias.estaVacia()) //condicion en caso de que no haya categorias registradas
         {
-            categorias.insertarPrimero(nodCategoria);
-            System.out.println("Categoria nueva: " + nodCategoria.getNumCategoria() + " - " + nodCategoria.getTipoCategoria());
-            nodCategoria.insertarABB(jugador);
+            _categorias.insertarPrimero(nodCategoria);
+            nodCategoria.insertarABB(jugador); //inserta al jugador en su categoria
         }
         else
         {
-            aux = categorias.buscarCategorias(nodCategoria);
+            aux = _categorias.buscarCategorias(nodCategoria);
             
-            if(aux != null)
+            if(aux != null) //condicion en caso de que la categoria del jugador ya este registrada
             {
-                System.out.println("Categoria registrada: " + aux.getNumCategoria() + " - " + aux.getTipoCategoria());
-                aux.insertarABB(jugador);
+                aux.insertarABB(jugador); //inserta al jugador en su categoria
             }
-            else
+            else //condicion en caso de que hayan categorias registradas, pero la categoria del jugador no sea una de ellas
             {
-                categorias.insertarPrimero(nodCategoria);
-                System.out.println("Categoria nueva: " + nodCategoria.getNumCategoria() + " - " + nodCategoria.getTipoCategoria());
-                nodCategoria.insertarABB(jugador);
+                _categorias.insertarPrimero(nodCategoria);
+                nodCategoria.insertarABB(jugador); //inserta al jugador en su categoria
             }
         }
     }

@@ -9,7 +9,6 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 import java.util.ResourceBundle;
@@ -42,11 +41,11 @@ import javafx.util.StringConverter;
 public class FXMLDocumentController implements Initializable 
 {
     
-    private ColaJugadores queue; //Representa la cola de jugadores a ser vaciada en el torneo
-    private ListaAnos anos; //Representa la lista de anos a ser guardada/recuperada que contiene toda la informacion
-    private NodoAnos anoImplementado; //Año en el que se esta consultando/modificando la informacion
+    private ColaJugadores _queue; //Representa la cola de jugadores a ser vaciada en el torneo
+    private ListaAnos _anos; //Representa la lista de anos a ser guardada/recuperada que contiene toda la informacion
+    private NodoAnos _anoImplementado; //Año en el que se esta consultando/modificando la informacion
     
-    //Panel de "Crear Torneo"
+    
     @FXML
     private Button clickCrear;
     @FXML
@@ -65,9 +64,6 @@ public class FXMLDocumentController implements Initializable
     private TextField textNombre;
     @FXML
     private TextField textCategoria;
-    
-    
-    private TabPane clickConsultar;
     @FXML
     private Button clickEncuentros;
     @FXML
@@ -126,6 +122,8 @@ public class FXMLDocumentController implements Initializable
     private TextField textPuntosAcumulados;
     @FXML
     private Button salvarCambiosJugador;
+    @FXML
+    private Button eliminarJugador;
     
     /**
     * Metodo initialize
@@ -135,8 +133,8 @@ public class FXMLDocumentController implements Initializable
     @Override
     public void initialize(URL url, ResourceBundle rb)
     {
-        queue = new ColaJugadores(null);
-        anos = new ListaAnos();
+        _queue = new ColaJugadores(null);
+        _anos = new ListaAnos();
     }    
     
     /**
@@ -196,7 +194,7 @@ public class FXMLDocumentController implements Initializable
         int ano = elegirAnoPopup();
         NodoAnos nodAno = new NodoAnos(ano); //crea un nodo NodoAnos con el ano a consultar para buscar su equivalente en la lista de anos
         
-        anoImplementado = anos.buscarAnos(nodAno); //consigue el equivalente de nodAno y lo guarda en el atributo anoImplementado
+        _anoImplementado = _anos.buscarAnos(nodAno); //consigue el equivalente de nodAno y lo guarda en el atributo anoImplementado
         
         recuperarInformacionAño();
     }
@@ -210,19 +208,19 @@ public class FXMLDocumentController implements Initializable
     private int elegirAnoPopup() throws IOException, FileNotFoundException, ClassNotFoundException
     {
         NodoAnos aux = new NodoAnos(1); //instancia un nodoAnos con un numero de ano '1' para que entre en el ciclo while.
-        List<String> choices = new ArrayList<>(); //crea un Arraylist para recuperar la informacion de los anos donde existen torneos
+        List<String> arrayAnos = new ArrayList<>(); //crea un Arraylist para recuperar la informacion de los anos donde existen torneos
         
-        anos = anos.leerArchivo(anos); //recupera la ListaAnos del archivo de objetos y la asigna al atributo anos.
+        _anos = _anos.leerArchivo(_anos); //recupera la ListaAnos del archivo de objetos y la asigna al atributo anos.
         
-        while(aux != null)
+        while(aux != null) //ciclo para recorrer los años
         {
-            aux = anos.llenarDialogo(aux); //devuelve los NodoAnos con anos donde se crearon los torneos.
+            aux = _anos.llenarChoiceDialog(aux); //devuelve los NodoAnos con anos donde se crearon los torneos.
             
-            if(aux != null)
-                choices.add(Integer.toString(aux.getAno())); //anade einformacion al arrayList que contiene los anos donde se crearon torneos como un String
+            if(aux != null) //condicion para evitar un NullPointerException al tratar de añadir un NodoAnos null
+                arrayAnos.add(Integer.toString(aux.getAno())); //anade einformacion al arrayList que contiene los anos donde se crearon torneos como un String
         }
         
-        ChoiceDialog<String> dialog = new ChoiceDialog<>("Elegir año",choices); //instancia un ChoiceDialog con los anos que se han hecho torneos
+        ChoiceDialog<String> dialog = new ChoiceDialog<>("Elegir año", arrayAnos); //instancia un ChoiceDialog con los anos que se han hecho torneos
         dialog.setTitle("Consultar Informacion");
         dialog.setHeaderText("Por favor, introduzca la informacion requerida");
         dialog.setContentText("Introduzca el año a consultar:");
@@ -256,7 +254,7 @@ public class FXMLDocumentController implements Initializable
             
             //crea un jugador con la informacion introducida por el usuario
             NodoJugadores jugador = new NodoJugadores(textNombre.getText(), cedula, textSexo.getText(), edad, textEquipo.getText(), categoria, 0, 0, 0, null);
-            queue.encolar(jugador); //inserta al jugador en la cola
+            _queue.encolar(jugador); //inserta al jugador en la cola
         }
         
         clearText(); //limpia todos los TextFields
@@ -319,8 +317,8 @@ public class FXMLDocumentController implements Initializable
         NodoAnos nodAno = new NodoAnos(numAno); //crea un NodoAnos con el ano a ser introducido a la lista
         NodoAnos aux; //NodoAnos retornado si el ano en el que se quiere crear el torneo ya existe.
         
-        anos = anos.leerArchivo(anos); //lee el archivo de objetos que retorna la lista que contiene la informacion de todos los torneos
-        aux = anos.buscarAnos(nodAno); //busca que el ano en el que se trata de crear el torneo no exista
+        _anos = _anos.leerArchivo(_anos); //lee el archivo de objetos que retorna la lista que contiene la informacion de todos los torneos
+        aux = _anos.buscarAnos(nodAno); //busca que el ano en el que se trata de crear el torneo no exista
         
         if(aux != null)
         {
@@ -328,61 +326,67 @@ public class FXMLDocumentController implements Initializable
         }
         else
         {
-            anos.insertarPrimero(nodAno); //inserta el ano en el que se va a crear el torneo
+            _anos.insertarPrimero(nodAno); //inserta el ano en el que se va a crear el torneo
             
-            while(queue.getCabeza() != null) //ciclo para desencolar e introducir a todos los jugadores en el torneo
+            while(_queue.getCabeza() != null) //ciclo para desencolar e introducir a todos los jugadores en el torneo
             {
-                jugador = queue.desencolar(); //desencola al jugador
+                jugador = _queue.desencolar(); //desencola al jugador
                 nodAno.sortEquipo(jugador); //envia al jugador a validar su informacion en la lista de equipos
             }
         }
         
-        anos.crearArchivo(anos); //Anade al archivo de objetos la nueva lista de anos con la informacion recien anadida
+        _anos.crearArchivo(_anos); //Anade al archivo de objetos la nueva lista de anos con la informacion recien anadida
     }
 
     /**
-    * Metodo recuperarInformacionEquipo
-    * Metodo que recupera la informacion del equipo elegido a visualizar en el Historial de Equipos.
+    * Metodo recuperarInformacionAño
+    * Metodo que recupera la informacion del año elegido a visualizar.
     * 
-    * @param event Significa que este metodo es llamado con el click de un boton (Elegir Equipo)
+    * 
     */
     private void recuperarInformacionAño()
     {
         ListaEquipos listaEquipo = new ListaEquipos(); //lista donde se buscara el equipo elegido
         
-        listaEquipo = anoImplementado.getEquipos(); //llena lista de equipos, con los equipos que jugaron el ano elegido (e.g: 2013)
+        listaEquipo = _anoImplementado.getEquipos(); //llena lista de equipos, con los equipos que jugaron el ano elegido (e.g: 2013)
         
         llenarComboBoxEquipo(listaEquipo); //llena el ComboBox de los equipos que participaron este año
-        llenarComboBoxJugadores(listaEquipo);
+        llenarComboBoxJugadores(listaEquipo); //llena el ComboBox  de los jugadores que participaron este año
     }
     
+    /**
+    * Metodo llenarComboBoxJugadores
+    * Metodo que llena el ComboBox de jugadores, con elementos NodoJugadores, de todos los equipos que participaron en el torneo este año.
+    * 
+    * @param listaEquipo representa la lista de equipos del año a consultar.
+    */
     public void llenarComboBoxJugadores(ListaEquipos listaEquipo)
     {
-        ObservableList<NodoJugadores> ol = FXCollections.observableArrayList();
-        NodoEquipos equipos = listaEquipo.getCabeza();
+        ObservableList<NodoJugadores> ol = FXCollections.observableArrayList(); 
+        NodoEquipos equipos = listaEquipo.getCabeza(); 
         
-        while(equipos != null)
+        while(equipos != null) //ciclo para recorrer los equipos
         {
-            NodoCategorias categorias = equipos.getCategorias().getCabeza();
-            ABBJugadores arbol = categorias.getJugadores();
+            NodoCategorias categorias = equipos.getCategorias().getCabeza(); //instancia un nodo con las categorias del equipo a recorrer
+            ABBJugadores arbol = categorias.getJugadores(); //instancia un nodo con el ABB las categorias a recorrer
             
-            while(categorias != null)
+            while(categorias != null) //ciclo para recorrer las categorias
             {
-                NodoJugadores aux = arbol.getRaiz();
-                ArrayList<NodoJugadores> array = arbol.retornarEnOrden(aux);
+                NodoJugadores aux = arbol.getRaiz(); //instancia un nodo para obtener la raiz de cada ABB a recorrer
+                ArrayList<NodoJugadores> array = arbol.retornarEnOrden(aux); //devuelve un ArrayList con los jugadores
             
-                for(int i = 0 ; i < array.size() ; i++)
+                for(int i = 0 ; i < array.size() ; i++) //ciclo para insertar los jugadores en la ObservableList
                     ol.add(array.get(i));
             
-                categorias = categorias.getProximo();
+                categorias = categorias.getProximo(); //avanza a la siguiente categoria
             }
             
-            equipos = equipos.getProximo();
+            equipos = equipos.getProximo(); //avanza al siguiente equipo
         }
         
-        comboJugador.setItems(ol);
+        comboJugador.setItems(ol); //inserta la ObservableList con los elementos NodoJugadores en el ComboBox de jugadores
         
-        // Define rendering of the list of values in ComboBox drop down. 
+        //Expresion lambda que define la lista de valores a renderizar en el ComboBox
         comboJugador.setCellFactory((comboBox) -> 
         {
             return new ListCell<NodoJugadores>() 
@@ -403,8 +407,8 @@ public class FXMLDocumentController implements Initializable
                 }
             };
         });
-
-        // Define rendering of selected value shown in ComboBox.
+        
+        //define los valores especificos a renderizar en el ComboBox
         comboJugador.setConverter(new StringConverter<NodoJugadores>() 
         {
             @Override
@@ -421,39 +425,45 @@ public class FXMLDocumentController implements Initializable
         });
     }
     
+    /**
+    * Metodo eleccionComboJugador
+    * Metodo que muestra la informacion del jugador a consultar.
+    * 
+    * @param event Significa que este metodo es llamado al elegir un valor del ComboBox de jugadores
+    */
     @FXML
     private void eleccionComboJugador(ActionEvent event)
     {
-        NodoJugadores jugadorElegido = comboJugador.getSelectionModel().getSelectedItem();
+        NodoJugadores jugadorElegido = comboJugador.getSelectionModel().getSelectedItem(); //valor del ComboBox elegido
         
-        textJuegosGanados.setText(Integer.toString(jugadorElegido.getJuegosGanados()));
-        textJuegosPerdidos.setText(Integer.toString(jugadorElegido.getJuegosPerdidos()));
-        textNumeroJuegos.setText(Integer.toString(jugadorElegido.getJuegosGanados() + jugadorElegido.getJuegosPerdidos()));
-        textPuntosAcumulados.setText(Integer.toString(jugadorElegido.getPuntos()));
+        textJuegosGanados.setText(Integer.toString(jugadorElegido.getJuegosGanados())); //imprime los juegos ganados del jugador en el TextField
+        textJuegosPerdidos.setText(Integer.toString(jugadorElegido.getJuegosPerdidos())); //imprime los juegos perdidos del jugador en el TextField
+        textNumeroJuegos.setText(Integer.toString(jugadorElegido.getJuegosGanados() + jugadorElegido.getJuegosPerdidos())); //imprime la cantidad de juegos en el que el jugador ha participado en el TextField
+        textPuntosAcumulados.setText(Integer.toString(jugadorElegido.getPuntos())); //imprime los puntos acumulados del jugador en el TextField
     }
     
     /**
-    * Metodo popupElegirEquipo
-    * Metodo que despliega un ChoiceDialog para elegir la informacion del equipo que sera consultado/modificado
+    * Metodo llenarComboBoxEquipo
+    * Metodo que llena el ComboBox de equipos, con elementos NodoEquipos.
     * 
-    * @param listaEquipo la lista de equipos del ano a consultar
+    * @param listaEquipo representa la lista de equipos del año a consultar
     */
     private void llenarComboBoxEquipo(ListaEquipos listaEquipo)
     {
         ObservableList<NodoEquipos> ol = FXCollections.observableArrayList();
-        NodoEquipos aux = listaEquipo.getCabeza();
+        NodoEquipos equipos = listaEquipo.getCabeza();
         
-        while(aux != null)
+        while(equipos != null) //ciclo que recorre los equipos
         {
-            ol.add(aux);
-            aux = aux.getProximo();
+            ol.add(equipos); //añade el equipo a la ObservableList
+            equipos = equipos.getProximo(); //avanza al siguiente equipo
         }
         
-        comboEquipo.setItems(ol);
+        comboEquipo.setItems(ol); //inserta la ObservableList en el ComboBox
         
         
         
-        // Define rendering of the list of values in ComboBox drop down. 
+        //Expresion lambda que define la lista de valores a renderizar en el ComboBox
         comboEquipo.setCellFactory((comboBox) -> 
         {
             return new ListCell<NodoEquipos>() 
@@ -475,7 +485,7 @@ public class FXMLDocumentController implements Initializable
             };
         });
 
-        // Define rendering of selected value shown in ComboBox.
+        //define los valores especificos a renderizar en el ComboBox
         comboEquipo.setConverter(new StringConverter<NodoEquipos>() 
         {
             @Override
@@ -492,25 +502,33 @@ public class FXMLDocumentController implements Initializable
         });
     }
     
+    /**
+    * Metodo eleccionComboEquipos
+    * Metodo que muestra la informacion del equipo a consultar.
+    * 
+    * @param event Significa que este metodo es llamado al elegir un valor del ComboBox de equipos.
+    */
     @FXML
     private void eleccionComboEquipos(ActionEvent event)
     {
-        clearGrid();
-        NodoEquipos equipoElegido = comboEquipo.getSelectionModel().getSelectedItem();
-        NodoCategorias categoria = equipoElegido.getCategorias().getCabeza();
+        clearGrid(); //vacia los hijos de los GridPane en caso de que se haya consultado otro equipo anteriormente
         
-        ABBJugadores arbol = categoria.getJugadores();
+        NodoEquipos equipoElegido = comboEquipo.getSelectionModel().getSelectedItem(); //equipo a consultar elegido en el ComboBox
+        NodoCategorias categoria = equipoElegido.getCategorias().getCabeza(); //instancia un nodo con las categorias del equipo
         
-        textRanking.setText(Integer.toString(equipoElegido.getRanking()));
-        textPuntos.setText(Integer.toString(equipoElegido.getPuntos()));
+        ABBJugadores arbol = categoria.getJugadores(); //instancia una lista con el ABB de jugadores del equipo
+        
+        textRanking.setText(Integer.toString(equipoElegido.getRanking())); //imprime el Ranking del equipo en el TextField
+        textPuntos.setText(Integer.toString(equipoElegido.getPuntos())); //imprime los puntos del equipo en el TextField
         
         
-        while(categoria != null)
+        while(categoria != null) //recorre las categorias del equipo
         {
-            NodoJugadores jugador = categoria.getJugadores().getRaiz();
+            NodoJugadores jugador = categoria.getJugadores().getRaiz(); //instancia un nodo en la raiz del ABB de jugadores del equipo.
             
-            ArrayList<NodoJugadores> array = arbol.retornarEnOrden(jugador);
+            ArrayList<NodoJugadores> array = arbol.retornarEnOrden(jugador); //retorna un ArrayList con los jugadores
             
+            //bloque para ordenar a los jugadores en sus GridPane especificos, dependiendo de su categoria y sexo (puede ser optimizado)
             if( (jugador.getCategoria() == 3) && (jugador.getSexo().equalsIgnoreCase("m")))
                 llenarGrid(array, grid3M);
             else if( (jugador.getCategoria() == 3) && (jugador.getSexo().equalsIgnoreCase("f")))
@@ -528,10 +546,16 @@ public class FXMLDocumentController implements Initializable
             else if( (jugador.getCategoria() == 6) && (jugador.getSexo().equalsIgnoreCase("f")))
                 llenarGrid(array, grid6F);
             
-            categoria = categoria.getProximo();
+            categoria = categoria.getProximo(); //avanza a la siguiente categoria
         }
     }
     
+    /**
+    * Metodo clearGrid
+    * Metodo que vacia los GridPane de jugadores cuando se cambia de equipo a consultar
+    * 
+    * @param event Significa que este metodo es llamado al elegir un valor del ComboBox de jugadores
+    */
     public void clearGrid()
     {
         grid3M.getChildren().clear();
@@ -545,39 +569,51 @@ public class FXMLDocumentController implements Initializable
         
     }
     
+    /**
+    * Metodo llenarGrid
+    * Metodo que llena los GridPane con la informacion de los jugadores.
+    * 
+    * @param array ArrayList que contiene a los jugadores de una categoria especifica del equipo
+    * @param grid el GridPane a ser llenado con los jugadores en el ArrayList
+    */
      public void llenarGrid(ArrayList<NodoJugadores> array, GridPane grid)
     {
-        for(int i = 0 ; i < array.size() ; i++)
+        for(int i = 0 ; i < array.size() ; i++) //ciclo que llena el GridPane de jugadores
         {
-            TextField text = new TextField(array.get(i).getNombre());
-            text.setId(array.get(i).getNombre());
-            grid.add(text, i, 0);
+            TextField text = new TextField(array.get(i).getNombre()); //instancia un TextField con el nombre del jugador
+            text.setId(array.get(i).getNombre()); //asigna un FX:ID al TextField, siendo este el mismo nombre del jugador que muestra.
+            grid.add(text, i, 0); //lo añade al Grid en el indice especificado
         }   
     }
     
-    
+    /**
+    * Metodo sobreescribirJugadores
+    * Metodo que sobreescribe los jugadores que se hayan modificado en el historial de equipos.
+    * 
+    * @param grid representa uno de los 8 grid de jugadores en el historial de equipos.
+    */
     public void sobreescribirJugadores(GridPane grid)
     {
-        NodoEquipos equipoElegido = comboEquipo.getSelectionModel().getSelectedItem();
+        NodoEquipos equipoElegido = comboEquipo.getSelectionModel().getSelectedItem(); //equipo a consultar elegido en el ComboBox
         
-        for(int i = 0 ; i < grid.getChildren().size() ; i++)
+        for(int i = 0 ; i < grid.getChildren().size() ; i++) //ciclo para recorrer todos los hijos del GridPane
         {
-            Node nodo = grid.getChildren().get(i);
+            Node nodo = grid.getChildren().get(i); //instanciamos un objeto Node con uno de los hijos del GridPane, dependiendo de en que indice nos encontremos.
             
-            if(nodo instanceof TextField)
+            if(nodo instanceof TextField) //condicional para chequear si el hijo del GridPane es un objeto TextField
             {
-                TextField text = (TextField) nodo;
+                TextField text = (TextField) nodo; //casteamos el objeto Nodo a TextField
             
-                NodoCategorias nodCat = equipoElegido.getCategorias().getCabeza();
-                NodoJugadores jugador = nodCat.getJugadores().getRaiz();
+                NodoCategorias nodCat = equipoElegido.getCategorias().getCabeza(); //instanciamos un nodo con las categorias del equipo elegido en el ComboBox
+                NodoJugadores jugador = nodCat.getJugadores().getRaiz(); //instanciamos un nodo con los jugadores del equipo elegido en el ComboBox
                 
-                nodCat.getJugadores().sobreescribirJugador(jugador, text);
+                nodCat.getJugadores().sobreescribirJugador(jugador, text); //sobreescribimos al jugador modificado
             }
         }
     }
     
     /**
-    * Metodo salvarCambios
+    * Metodo salvarCambiosEquipo
     * Metodo que Salva los cambios realizados en el historial de equipos.
     * 
     * @param event Significa que este metodo es llamado con el click de un boton (Salvar Cambios)
@@ -585,16 +621,17 @@ public class FXMLDocumentController implements Initializable
     @FXML
     private void salvarCambiosEquipo(ActionEvent event) throws IOException
     {
-        NodoEquipos equipoElegido = comboEquipo.getSelectionModel().getSelectedItem();
-        NodoCategorias categoria = equipoElegido.getCategorias().getCabeza();
+        NodoEquipos equipoElegido = comboEquipo.getSelectionModel().getSelectedItem(); //equipo a consultar elegido en el ComboBox
+        NodoCategorias categoria = equipoElegido.getCategorias().getCabeza(); //instanciamos un nodo con las categorias del equipo elegido en el ComboBox
         
-        equipoElegido.setRanking(Integer.parseInt(textRanking.getText()));
-        equipoElegido.setPuntos(Integer.parseInt(textPuntos.getText()));
+        equipoElegido.setRanking(Integer.parseInt(textRanking.getText())); //salva el valor modificado en textRanking en el atributo ranking del jugador
+        equipoElegido.setPuntos(Integer.parseInt(textPuntos.getText())); //salva el valor modificado en textPuntos en el atributo puntos del jugador
         
-        while(categoria != null)
+        while(categoria != null) //ciclo para recorrer las categorias del equipo
         {
-            NodoJugadores jugador = categoria.getJugadores().getRaiz();
+            NodoJugadores jugador = categoria.getJugadores().getRaiz(); //instancia un nodo en la raiz del ABB de jugadores del equipo.
             
+            //bloque para sobreescribir los jugadores modificados en los GridPane de jugadores (puede ser optimizado)
             if( (jugador.getCategoria() == 3) && (jugador.getSexo().equalsIgnoreCase("m")))
                 sobreescribirJugadores(grid3M);
             else if( (jugador.getCategoria() == 3) && (jugador.getSexo().equalsIgnoreCase("f")))
@@ -612,21 +649,56 @@ public class FXMLDocumentController implements Initializable
             else if( (jugador.getCategoria() == 6) && (jugador.getSexo().equalsIgnoreCase("f")))
                 sobreescribirJugadores(grid6F);
             
-            categoria = categoria.getProximo();
+            categoria = categoria.getProximo(); //avanza a la siguiente categoria
         }
         
-        anos.crearArchivo(anos);
+        _anos.crearArchivo(_anos); //salva los cambios al archivo de objetos
     }
-
+    
+    /**
+    * Metodo salvarCambiosJugador
+    * Metodo que Salva los cambios realizados en el historial de jugadores.
+    * 
+    * @param event Significa que este metodo es llamado con el click de un boton (Salvar Cambios)
+    */
     @FXML
     private void SalvarCambiosJugador(ActionEvent event) throws IOException
     {
         NodoJugadores jugadorElegido = comboJugador.getSelectionModel().getSelectedItem();
         
-        jugadorElegido.setJuegosGanados(Integer.parseInt(textJuegosGanados.getText()));
-        jugadorElegido.setJuegosPerdidos(Integer.parseInt(textJuegosPerdidos.getText()));
-        jugadorElegido.setPuntos(Integer.parseInt(textPuntosAcumulados.getText()));
+        jugadorElegido.setJuegosGanados(Integer.parseInt(textJuegosGanados.getText())); //salva el valor modificado en textJuegosGanados al atributo juegosGanados del jugador
+        jugadorElegido.setJuegosPerdidos(Integer.parseInt(textJuegosPerdidos.getText())); //salva el valor modificado en textJuegosPerdidos al atributo juegosPerdidos del jugador
+        jugadorElegido.setPuntos(Integer.parseInt(textPuntosAcumulados.getText())); //salva el valor modificado en textJuegosAcumulados al atributo puntos del jugador
         
-        anos.crearArchivo(anos);
+        _anos.crearArchivo(_anos); //salva los cambios al archivo de objetos
+    }
+    
+    /**
+    * Metodo eliminarEquipo
+    * Metodo que elimina un equipo del torneo.
+    * 
+    * @param event Significa que este metodo es llamado con el click de un boton (Salvar Cambios)
+    */
+    @FXML
+    private void eliminarEquipo(ActionEvent event) throws IOException
+    {
+        NodoEquipos equipoEliminado = comboEquipo.getSelectionModel().getSelectedItem(); //equipo a eliminar elegido en el ComboBox
+        
+        _anoImplementado.getEquipos().eliminarEquipo(equipoEliminado); //elimina el nodo del equipo en la lista de equipos
+        
+        _anos.crearArchivo(_anos); //salva los cambios al archivo de objetos
+    }
+    
+    /**
+    * Metodo eliminarJugador
+    * Metodo que elimina un jugador del torneo. //No lo pude terminar a tiempo
+    * 
+    * @param event Significa que este metodo es llamado con el click de un boton (Salvar Cambios)
+    */
+    @FXML
+    private void eliminarJugador(ActionEvent event) 
+    {
+        NodoJugadores jugadorEliminado = comboJugador.getSelectionModel().getSelectedItem(); //jugador a eliminar elegido en el ComboBox
+        ListaEquipos listaEquipo = _anoImplementado.getEquipos();
     }
 }

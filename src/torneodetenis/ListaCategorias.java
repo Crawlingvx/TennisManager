@@ -8,21 +8,25 @@ package torneodetenis;
 import java.io.Serializable;
 
 /**
- *
- * @author Administrador
+ * Clase ListaAnos
+ * Esta clase representa la lista de categorias que cada equipo tiene.
+ * 
+ * @author Gian Franco Vitola, Elia Elias, Jose Guerrero
+ * @version 1.04, 16/11/2015
  */
 public class ListaCategorias implements Serializable
 {
-    private NodoCategorias cabeza;
+    private NodoCategorias _cabeza;
+    private NodoCategorias _cola;
 
     public ListaCategorias(NodoCategorias cabeza) 
     {
-        this.cabeza = cabeza;
+        this._cabeza = cabeza;
     }
 
     public NodoCategorias getCabeza() 
     {
-        return cabeza;
+        return _cabeza;
     }
     
     /**
@@ -32,7 +36,7 @@ public class ListaCategorias implements Serializable
     */
     public boolean estaVacia() 
     {
-        return cabeza == null; 
+        return _cabeza == null; 
     }
     
     /**
@@ -44,32 +48,23 @@ public class ListaCategorias implements Serializable
     {
         if (estaVacia()) 
         {
-            cabeza = nuevo;
+            _cabeza = _cola = nuevo;
         } 
         else 
         {
-            nuevo.setProximo(cabeza);
-            cabeza = nuevo;
+            if(_cabeza == _cola){
+                nuevo.setProximo(_cabeza);
+                _cola = _cabeza;
+                _cabeza = nuevo;
+                _cola.setAnterior(_cabeza);
+            }
+            else
+            {
+                nuevo.setProximo(_cabeza);
+                _cabeza.setAnterior(nuevo);
+                _cabeza = nuevo;
+            }   
         }
-    }
-    
-    /**
-    * Metodo eliminarPrimero
-    * Metodo que elimina el primer nodo de la lista.
-    * 
-    */
-    public NodoCategorias eliminarPrimero() 
-    {
-        NodoCategorias nodoEliminado = null;
-        
-        if (!estaVacia()) 
-        {
-            nodoEliminado = cabeza;
-            cabeza = cabeza.getProximo();
-            nodoEliminado.setProximo(null);
-        } 
-        
-        return nodoEliminado;
     }
     
     /**
@@ -80,11 +75,11 @@ public class ListaCategorias implements Serializable
     */
     public NodoCategorias buscarCategorias(NodoCategorias nodCategoria)
     {
-        NodoCategorias aux = cabeza;
+        NodoCategorias aux = _cabeza;
         
         while(aux != null)
         {
-            //si la categoria esta registrada, retorna null
+            //retorna aux si la categoria del jugador ya esta registrada
             if( (nodCategoria.getNumCategoria() == aux.getNumCategoria()) && (nodCategoria.getTipoCategoria().equalsIgnoreCase(aux.getTipoCategoria())) )
             {
                 return aux;
@@ -95,7 +90,7 @@ public class ListaCategorias implements Serializable
             }
         }
         
-        return null;
+        return null; //retorna null si la categoria del jugador no esta registrada
     }
     
     static final long serialVersionUID = 8925409;

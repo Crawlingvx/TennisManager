@@ -6,8 +6,11 @@
 package torneodetenis;
 
 /**
- *
- * @author Administrador
+ * Clase ColaJugadores
+ * Esta clase representa la cola de jugadores a ser llenada/vaciada para la creacion del torneo.
+ * 
+ * @author Gian Franco Vitola, Elia Elias, Jose Guerrero
+ * @version 1.00, 10/11/2015
  */
 public class ColaJugadores
 {
@@ -23,7 +26,11 @@ public class ColaJugadores
         return cabeza == null;
     }
     
-    // Metodo donde se inserta el nodo nuevo al final (ultimo) de la cola
+    /**
+    * Metodo encolar
+    * Metodo que añade un jugador al final de la cola.
+    * 
+    */
     public void encolar(NodoJugadores nuevo)
     {
         if (estaVacia()) 
@@ -41,7 +48,11 @@ public class ColaJugadores
         }
     }
     
-    // Metodo donde se elimina el nodo que esta de primero en la cola
+    /**
+    * Metodo desencolar
+    * Metodo que elimina el jugador que se encuentre de primero en la cola. Este sera añadido al torneo.
+    * 
+    */
     public NodoJugadores desencolar()
     {
         NodoJugadores nodoEliminado = null;

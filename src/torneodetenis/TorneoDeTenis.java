@@ -12,13 +12,14 @@ import javafx.scene.Scene;
 import javafx.stage.Stage;
 
 /**
- *
- * @author Administrador
+ * Clase TorneoDeTenis
+ * Esta clase ejecuta el programa.
+ * 
+ * @author Gian Franco Vitola, Elia Elias, Jose Guerrero
+ * @version 1.01, 23/11/2015
  */
 public class TorneoDeTenis extends Application
 {
-    private ListaAnos años;
-    
     @Override
     public void start(Stage stage) throws Exception 
     {

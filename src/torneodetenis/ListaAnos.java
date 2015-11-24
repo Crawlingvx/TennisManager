@@ -16,28 +16,29 @@ import java.io.Serializable;
 
 /**
  * Clase ListaAnos
- * Esta representa la lista de anos donde se crearon torneos. Contiene toda la informacion referente a los torneos en su interior.
+ * Esta clase representa la lista de anos donde se crearon torneos. Contiene toda la informacion referente a los torneos en su interior.
  * 
  * @author Gian Franco Vitola, Elia Elias, Jose Guerrero
  * @version 1.04, 16/11/2015
  */
 public class ListaAnos implements Serializable
 {
-    private NodoAnos cabeza;
-    private ListaEncuentros encuentros; //lista de Encuentros
+    private NodoAnos _cabeza;
+    private NodoAnos _cola;
+    private ListaEncuentros _encuentros; //lista de Encuentros
     
     public ListaAnos() 
     {
-        this.cabeza = null;
+        this._cabeza = null;
     }
     
     public ListaAnos(NodoAnos cabeza)
     {
-        this.cabeza = cabeza;
+        this._cabeza = cabeza;
     }
 
     public NodoAnos getCabeza() {
-        return cabeza;
+        return _cabeza;
     }
     
    /**
@@ -47,7 +48,7 @@ public class ListaAnos implements Serializable
     */
     public boolean estaVacia() 
     {
-        return cabeza == null; 
+        return _cabeza == null; 
     }
     
     /**
@@ -59,32 +60,23 @@ public class ListaAnos implements Serializable
     {
         if (estaVacia()) 
         {
-            cabeza = nuevo;
+            _cabeza = _cola = nuevo;
         } 
         else 
         {
-            nuevo.setProximo(cabeza);
-            cabeza = nuevo;
+            if(_cabeza == _cola){
+                nuevo.setProximo(_cabeza);
+                _cola = _cabeza;
+                _cabeza = nuevo;
+                _cola.setAnterior(_cabeza);
+            }
+            else
+            {
+                nuevo.setProximo(_cabeza);
+                _cabeza.setAnterior(nuevo);
+                _cabeza = nuevo;
+            }   
         }
-    }
-    
-    /**
-    * Metodo eliminarPrimero
-    * Metodo que elimina el primer nodo de la lista.
-    * 
-    */
-    public NodoAnos eliminarPrimero() 
-    {
-        NodoAnos nodoEliminado = null;
-        
-        if (!estaVacia()) 
-        {
-            nodoEliminado = cabeza;
-            cabeza = cabeza.getProximo();
-            nodoEliminado.setProximo(null);
-        } 
-        
-        return nodoEliminado;
     }
     
     /**
@@ -95,11 +87,11 @@ public class ListaAnos implements Serializable
     */
     public NodoAnos buscarAnos(NodoAnos nodAno)
     {
-        NodoAnos aux = cabeza;
+        NodoAnos aux = _cabeza;
         
         while(aux != null)
         {
-            if( nodAno.getAno() == aux.getAno() ) //retorna el nodo registrado si ya existe el ano
+            if( nodAno.getAno() == aux.getAno() ) //retorna aux si el año ya esta registrado
             {
                 return aux;
             }
@@ -109,33 +101,31 @@ public class ListaAnos implements Serializable
             }
         }
         
-        return null; //retorna null si no existe el ano
+        return null; //retorna null si el año no esta registrado
     }
     
-    public NodoAnos llenarDialogo(NodoAnos aux)
+    /**
+    * Metodo llenarChoiceDialog
+    * Metodo que llena un ChoiceDialog con los años en los que existen torneos.
+    * 
+    * @param aux nodo para almacenar los años en los que exisen torneos
+    */
+    public NodoAnos llenarChoiceDialog(NodoAnos aux)
     {
-        if(aux.getAno() == 1)
-            aux = cabeza;
+        if(aux.getAno() == 1) //condicion para identificar que auxiliar no contiene valores de la lista de años
+            aux = _cabeza;
         else
-            aux = aux.getProximo();
+            aux = aux.getProximo(); //avanza al siguiente nodo
         
-        return aux;
+        return aux; //devuelve el nodo
     }
     
-    //Metodo que cuenta los nodos de la lista
-    public int contar()
-    {
-        NodoAnos aux = cabeza;
-        int cont=0;
-        
-        while(aux != null)
-        {
-            aux = aux.getProximo();
-            cont++;
-        }
-        return cont;
-    }
-    
+    /**
+    * Metodo leerArchivo
+    * Metodo que recupera la informacion del archivo de objetos.
+    * 
+    * @param anos lista de años donde se almacenara la informacion recuperada del archivo de objetos
+    */
     public ListaAnos leerArchivo(ListaAnos anos) throws FileNotFoundException, IOException, ClassNotFoundException
     {
         ListaAnos lista = anos;
@@ -153,7 +143,7 @@ public class ListaAnos implements Serializable
                 ois.close();
             }
         }
-        catch(FileNotFoundException e)
+        catch(FileNotFoundException e) //en caso de que no exista un archivo de objetos
         {
             System.out.println("No existe un archivo");
         }
@@ -161,6 +151,12 @@ public class ListaAnos implements Serializable
         return lista;
     }
     
+    /**
+    * Metodo crearArchivo
+    * Metodo que sobreescribe el archivo de objetos con una lista de años actualizada.
+    * 
+    * @param lista lista de años con informacion nueva
+    */
     public void crearArchivo(ListaAnos lista) throws FileNotFoundException, IOException
     {
         FileOutputStream fos = new FileOutputStream("lista.DAT", false);
